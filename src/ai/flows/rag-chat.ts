@@ -11,13 +11,13 @@
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 
-export const RagChatInputSchema = z.object({
+const RagChatInputSchema = z.object({
   query: z.string().describe('The user\'s question.'),
   documentContent: z.string().describe('The content of the document to use as context.'),
 });
 export type RagChatInput = z.infer<typeof RagChatInputSchema>;
 
-export const RagChatOutputSchema = z.object({
+const RagChatOutputSchema = z.object({
   answer: z.string().describe('The AI-generated answer to the user\'s question.'),
 });
 export type RagChatOutput = z.infer<typeof RagChatOutputSchema>;
