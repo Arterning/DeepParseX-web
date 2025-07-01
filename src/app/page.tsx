@@ -33,7 +33,6 @@ import {
   Sparkles,
   File,
 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import KnowledgeGraphViewer from "@/components/knowledge-graph-viewer";
 
 type LoadingStates = {
@@ -97,9 +96,14 @@ export default function Home() {
           fileType: file.type,
         });
         setInsights(result);
+        const docContentForChat = `Summary: ${result.summary}\n\nKey Insights:\n${result.keyInsights.join("\n")}`;
+        localStorage.setItem('documentContext', JSON.stringify({
+            fileName: file.name,
+            content: docContentForChat,
+        }));
         toast({
           title: "Parsing Successful",
-          description: "Key insights have been extracted from your document.",
+          description: "Key insights have been extracted. You can now chat about this document.",
         });
       };
       reader.onerror = (error) => {
@@ -160,181 +164,179 @@ export default function Home() {
   }, [searchQuery, documentContent, toast]);
 
   return (
-    <main className="min-h-screen bg-background text-foreground">
-      <div className="container mx-auto p-4 sm:p-6 lg:p-8">
-        <header className="text-center mb-10">
-          <h1 className="text-4xl sm:text-5xl font-bold tracking-tight bg-gradient-to-r from-primary to-blue-400 text-transparent bg-clip-text">
-            DeepParseXWeb
-          </h1>
-          <p className="mt-2 text-lg text-muted-foreground">
-            Intelligent Document Analysis Platform
-          </p>
-        </header>
+    <div className="container mx-auto p-4 sm:p-6 lg:p-8">
+      <header className="text-center mb-10">
+        <h1 className="text-4xl sm:text-5xl font-bold tracking-tight">
+          Document Upload & Analysis
+        </h1>
+        <p className="mt-2 text-lg text-muted-foreground">
+          Start by uploading a document to extract insights.
+        </p>
+      </header>
 
-        <Card className="max-w-3xl mx-auto shadow-lg border-2 border-dashed border-muted hover:border-primary transition-colors duration-300">
-          <CardHeader className="items-center text-center">
-            <UploadCloud className="w-12 h-12 text-primary" />
-            <CardTitle>Upload Your Document</CardTitle>
-            <CardDescription>
-              Supports PDF, Word, Excel, PPT, images, video, and audio formats.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Input
-              id="file-upload"
-              type="file"
-              ref={fileInputRef}
-              onChange={handleFileChange}
-              className="hidden"
-            />
-            {!file ? (
+      <Card className="max-w-3xl mx-auto shadow-lg border-2 border-dashed border-muted hover:border-primary transition-colors duration-300">
+        <CardHeader className="items-center text-center">
+          <UploadCloud className="w-12 h-12 text-primary" />
+          <CardTitle>Upload Your Document</CardTitle>
+          <CardDescription>
+            Supports PDF, Word, images, and more.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Input
+            id="file-upload"
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileChange}
+            className="hidden"
+          />
+          {!file ? (
+            <Button
+              size="lg"
+              className="w-full"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              Choose File
+            </Button>
+          ) : (
+            <div className="space-y-4">
+              <div className="flex items-center space-x-4 p-4 rounded-md border bg-secondary/50">
+                <FileIcon type={file.type} />
+                <div className="flex-1">
+                  <p className="font-semibold">{file.name}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {(file.size / 1024 / 1024).toFixed(2)} MB
+                  </p>
+                </div>
+                <Button variant="ghost" onClick={() => setFile(null)}>Change</Button>
+              </div>
               <Button
                 size="lg"
-                className="w-full"
-                onClick={() => fileInputRef.current?.click()}
+                className="w-full font-semibold"
+                onClick={handleParse}
+                disabled={loading.parsing}
               >
-                Choose File
+                {loading.parsing ? (
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                ) : (
+                  <Sparkles className="mr-2 h-5 w-5" />
+                )}
+                Parse Document
               </Button>
-            ) : (
-              <div className="space-y-4">
-                <div className="flex items-center space-x-4 p-4 rounded-md border bg-secondary/50">
-                  <FileIcon type={file.type} />
-                  <div className="flex-1">
-                    <p className="font-semibold">{file.name}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {(file.size / 1024 / 1024).toFixed(2)} MB
-                    </p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {insights && (
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-10 max-w-5xl mx-auto">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="insights"><Lightbulb className="mr-2" />Key Insights</TabsTrigger>
+            <TabsTrigger value="graph"><BrainCircuit className="mr-2" />Knowledge Graph</TabsTrigger>
+            <TabsTrigger value="search"><Search className="mr-2" />AI Search</TabsTrigger>
+          </TabsList>
+          <TabsContent value="insights" className="mt-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Document Summary</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground leading-relaxed">{insights.summary}</p>
+              </CardContent>
+            </Card>
+            <Card className="mt-6">
+              <CardHeader>
+                <CardTitle>Key Insights</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-3">
+                  {insights.keyInsights.map((insight, index) => (
+                    <li key={index} className="flex items-start space-x-3">
+                      <ChevronRight className="h-5 w-5 text-primary mt-1 flex-shrink-0" />
+                      <span className="text-muted-foreground">{insight}</span>
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+          </TabsContent>
+          <TabsContent value="graph" className="mt-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Knowledge Graph Visualization</CardTitle>
+                <CardDescription>
+                  Generate a graph to explore relationships within your document.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="text-center">
+                {!knowledgeGraph && (
+                  <Button onClick={handleGenerateGraph} disabled={loading.generatingGraph} size="lg">
+                    {loading.generatingGraph ? (
+                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                    ) : (
+                      <BrainCircuit className="mr-2 h-5 w-5" />
+                    )}
+                    Generate Knowledge Graph
+                  </Button>
+                )}
+                 {loading.generatingGraph && !knowledgeGraph && (
+                  <div className="flex justify-center items-center p-8">
+                      <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                      <p className="ml-4 text-muted-foreground">Generating graph...</p>
                   </div>
-                  <Button variant="ghost" onClick={() => setFile(null)}>Change</Button>
-                </div>
-                <Button
-                  size="lg"
-                  className="w-full font-semibold"
-                  onClick={handleParse}
-                  disabled={loading.parsing}
-                >
-                  {loading.parsing ? (
-                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                  ) : (
-                    <Sparkles className="mr-2 h-5 w-5" />
-                  )}
-                  Parse Document
-                </Button>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                )}
+                {knowledgeGraph && <KnowledgeGraphViewer graphData={knowledgeGraph} />}
+              </CardContent>
+            </Card>
+          </TabsContent>
+          <TabsContent value="search" className="mt-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>AI-Powered Search</CardTitle>
+                <CardDescription>
+                  Ask questions or search for terms within your document.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleSearch} className="flex space-x-2">
+                  <Input
+                    type="search"
+                    placeholder="e.g., What are the main conclusions?"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="flex-1"
+                  />
+                  <Button type="submit" disabled={loading.searching}>
+                    {loading.searching ? (
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                    ) : (
+                      <Search className="h-5 w-5" />
+                    )}
+                  </Button>
+                </form>
+                
+                {loading.searching && (
+                   <div className="flex justify-center items-center p-8 mt-4">
+                      <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                      <p className="ml-4 text-muted-foreground">Searching...</p>
+                  </div>
+                )}
 
-        {insights && (
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-10 max-w-5xl mx-auto">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="insights"><Lightbulb className="mr-2" />Key Insights</TabsTrigger>
-              <TabsTrigger value="graph"><BrainCircuit className="mr-2" />Knowledge Graph</TabsTrigger>
-              <TabsTrigger value="search"><Search className="mr-2" />AI Search</TabsTrigger>
-            </TabsList>
-            <TabsContent value="insights" className="mt-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Document Summary</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground leading-relaxed">{insights.summary}</p>
-                </CardContent>
-              </Card>
-              <Card className="mt-6">
-                <CardHeader>
-                  <CardTitle>Key Insights</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-3">
-                    {insights.keyInsights.map((insight, index) => (
-                      <li key={index} className="flex items-start space-x-3">
-                        <ChevronRight className="h-5 w-5 text-primary mt-1 flex-shrink-0" />
-                        <span className="text-muted-foreground">{insight}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-              </Card>
-            </TabsContent>
-            <TabsContent value="graph" className="mt-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Knowledge Graph Visualization</CardTitle>
-                  <CardDescription>
-                    Generate a graph to explore relationships within your document.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="text-center">
-                  {!knowledgeGraph && (
-                    <Button onClick={handleGenerateGraph} disabled={loading.generatingGraph} size="lg">
-                      {loading.generatingGraph ? (
-                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                      ) : (
-                        <BrainCircuit className="mr-2 h-5 w-5" />
-                      )}
-                      Generate Knowledge Graph
-                    </Button>
-                  )}
-                   {loading.generatingGraph && !knowledgeGraph && (
-                    <div className="flex justify-center items-center p-8">
-                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                        <p className="ml-4 text-muted-foreground">Generating graph...</p>
-                    </div>
-                  )}
-                  {knowledgeGraph && <KnowledgeGraphViewer graphData={knowledgeGraph} />}
-                </CardContent>
-              </Card>
-            </TabsContent>
-            <TabsContent value="search" className="mt-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>AI-Powered Search</CardTitle>
-                  <CardDescription>
-                    Ask questions or search for terms within your document.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <form onSubmit={handleSearch} className="flex space-x-2">
-                    <Input
-                      type="search"
-                      placeholder="e.g., What are the main conclusions?"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="flex-1"
-                    />
-                    <Button type="submit" disabled={loading.searching}>
-                      {loading.searching ? (
-                        <Loader2 className="h-5 w-5 animate-spin" />
-                      ) : (
-                        <Search className="h-5 w-5" />
-                      )}
-                    </Button>
-                  </form>
-                  
-                  {loading.searching && (
-                     <div className="flex justify-center items-center p-8 mt-4">
-                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                        <p className="ml-4 text-muted-foreground">Searching...</p>
-                    </div>
-                  )}
-
-                  {searchResults && (
-                    <Card className="mt-6 bg-secondary/50">
-                      <CardHeader>
-                        <CardTitle>Search Results</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-muted-foreground leading-relaxed">{searchResults}</p>
-                      </CardContent>
-                    </Card>
-                  )}
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
-        )}
-      </div>
-    </main>
+                {searchResults && (
+                  <Card className="mt-6 bg-secondary/50">
+                    <CardHeader>
+                      <CardTitle>Search Results</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-muted-foreground leading-relaxed">{searchResults}</p>
+                    </CardContent>
+                  </Card>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      )}
+    </div>
   );
 }
