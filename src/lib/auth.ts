@@ -8,7 +8,7 @@ import { useEffect, useState, useCallback } from 'react';
 const TOKEN_KEY = 'deep_parse_x_token';
 
 
-axios.defaults.baseURL = 'http://192.168.200.229:8001';
+axios.defaults.baseURL = 'http://localhost:8001';
 
 
 // 请求拦截器
@@ -62,17 +62,17 @@ export interface LoginRes {
 
 // --- Auth Service Functions ---
 export const login = async (data: LoginData): Promise<LoginRes> => {
-  const response = await axios.post('/api/v1/auth/login', data);
-  setToken(response.data.access_token);
-  return response.data;
+  // const response = await axios.post('/api/v1/auth/login', data);
+  // setToken(response.data.access_token);
+  // return response.data;
   
-  // return new Promise((resolve) => {
-  //   setTimeout(() => {
-  //     const mockToken = `mock-token-for-${data.username}-${Date.now()}`;
-  //     setToken(mockToken);
-  //     resolve({ access_token: mockToken });
-  //   }, 500);
-  // });
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const mockToken = `mock-token-for-${data.username}-${Date.now()}`;
+      setToken(mockToken);
+      resolve({ access_token: mockToken });
+    }, 500);
+  });
 
 };
 
