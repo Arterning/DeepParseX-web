@@ -1,10 +1,36 @@
 'use client';
 
+import axios, { AxiosRequestConfig } from 'axios';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState, useCallback } from 'react';
 
 // --- Constants ---
 const TOKEN_KEY = 'deep_parse_x_token';
+
+
+axios.defaults.baseURL = 'http://192.168.200.229:8001';
+
+
+// 请求拦截器
+axios.interceptors.request.use(
+  (config: AxiosRequestConfig) => {
+    const token = getToken();
+    if (token) {
+      config.headers = {
+        ...config.headers,
+        Authorization: `Bearer ${token}`,
+      };
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+
+export function logout() {
+  return axios.post('/api/v1/auth/logout');
+}
+
 
 // --- Token Management (client-side) ---
 export const getToken = (): string | null => {
@@ -36,20 +62,18 @@ export interface LoginRes {
 
 // --- Auth Service Functions ---
 export const login = async (data: LoginData): Promise<LoginRes> => {
-  // MOCK IMPLEMENTATION
-  // In a real app, this would be:
-  // import api from './api';
-  // const response = await api.post<LoginRes>('/auth/login', data);
-  // setToken(response.data.access_token);
-  // return response.data;
+  const response = await axios.post('/api/v1/auth/login', data);
+  setToken(response.data.access_token);
+  return response.data;
   
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      const mockToken = `mock-token-for-${data.username}-${Date.now()}`;
-      setToken(mockToken);
-      resolve({ access_token: mockToken });
-    }, 500);
-  });
+  // return new Promise((resolve) => {
+  //   setTimeout(() => {
+  //     const mockToken = `mock-token-for-${data.username}-${Date.now()}`;
+  //     setToken(mockToken);
+  //     resolve({ access_token: mockToken });
+  //   }, 500);
+  // });
+
 };
 
 // --- Hooks ---
