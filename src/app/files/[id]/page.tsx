@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Lightbulb, BrainCircuit, ChevronRight } from "lucide-react";
 import KnowledgeGraphViewer from "@/components/knowledge-graph-viewer";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import AuthGuard from "@/components/auth-guard";
 
 // Mock data for a single file's details
 const mockFileDetail = {
@@ -42,53 +43,55 @@ export default function FileDetailPage({ params }: { params: { id: string } }) {
 
 
   return (
-    <div className="container mx-auto p-4 sm:p-6 lg:p-8">
-      <header className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight truncate">{file.name}</h1>
-        <p className="text-lg text-muted-foreground">Detailed analysis and insights for mock file: {params.id}</p>
-      </header>
+    <AuthGuard>
+      <div className="container mx-auto p-4 sm:p-6 lg:p-8">
+        <header className="mb-8">
+          <h1 className="text-3xl font-bold tracking-tight truncate">{file.name}</h1>
+          <p className="text-lg text-muted-foreground">Detailed analysis and insights for mock file: {params.id}</p>
+        </header>
 
-      <Tabs defaultValue="insights" className="max-w-5xl mx-auto">
-        <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="insights"><Lightbulb className="mr-2" />Key Insights</TabsTrigger>
-            <TabsTrigger value="graph"><BrainCircuit className="mr-2" />Knowledge Graph</TabsTrigger>
-        </TabsList>
-        <TabsContent value="insights" className="mt-6">
-            <Card>
-            <CardHeader>
-                <CardTitle>Document Summary</CardTitle>
-            </CardHeader>
-            <CardContent>
-                <p className="text-muted-foreground leading-relaxed">{file.summary}</p>
-            </CardContent>
-            </Card>
-            <Card className="mt-6">
-            <CardHeader>
-                <CardTitle>Key Insights</CardTitle>
-            </CardHeader>
-            <CardContent>
-                <ul className="space-y-3">
-                {file.keyInsights.map((insight, index) => (
-                    <li key={index} className="flex items-start space-x-3">
-                    <ChevronRight className="h-5 w-5 text-primary mt-1 flex-shrink-0" />
-                    <span className="text-muted-foreground">{insight}</span>
-                    </li>
-                ))}
-                </ul>
-            </CardContent>
-            </Card>
-        </TabsContent>
-        <TabsContent value="graph" className="mt-6">
-            <Card>
-            <CardHeader>
-                <CardTitle>Knowledge Graph Visualization</CardTitle>
-            </CardHeader>
-            <CardContent className="text-center">
-                <KnowledgeGraphViewer graphData={file.knowledgeGraph} />
-            </CardContent>
-            </Card>
-        </TabsContent>
-      </Tabs>
-    </div>
+        <Tabs defaultValue="insights" className="max-w-5xl mx-auto">
+          <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="insights"><Lightbulb className="mr-2" />Key Insights</TabsTrigger>
+              <TabsTrigger value="graph"><BrainCircuit className="mr-2" />Knowledge Graph</TabsTrigger>
+          </TabsList>
+          <TabsContent value="insights" className="mt-6">
+              <Card>
+              <CardHeader>
+                  <CardTitle>Document Summary</CardTitle>
+              </CardHeader>
+              <CardContent>
+                  <p className="text-muted-foreground leading-relaxed">{file.summary}</p>
+              </CardContent>
+              </Card>
+              <Card className="mt-6">
+              <CardHeader>
+                  <CardTitle>Key Insights</CardTitle>
+              </CardHeader>
+              <CardContent>
+                  <ul className="space-y-3">
+                  {file.keyInsights.map((insight, index) => (
+                      <li key={index} className="flex items-start space-x-3">
+                      <ChevronRight className="h-5 w-5 text-primary mt-1 flex-shrink-0" />
+                      <span className="text-muted-foreground">{insight}</span>
+                      </li>
+                  ))}
+                  </ul>
+              </CardContent>
+              </Card>
+          </TabsContent>
+          <TabsContent value="graph" className="mt-6">
+              <Card>
+              <CardHeader>
+                  <CardTitle>Knowledge Graph Visualization</CardTitle>
+              </CardHeader>
+              <CardContent className="text-center">
+                  <KnowledgeGraphViewer graphData={file.knowledgeGraph} />
+              </CardContent>
+              </Card>
+          </TabsContent>
+        </Tabs>
+      </div>
+    </AuthGuard>
   );
 }

@@ -1,6 +1,9 @@
+"use client";
+
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { FileText, FileImage, File, ArrowRight } from "lucide-react";
 import Link from 'next/link';
+import AuthGuard from "@/components/auth-guard";
 
 // Mock data for uploaded files
 const mockFiles = [
@@ -18,29 +21,31 @@ const FileIcon = ({ type }: { type: string }) => {
 
 export default function FilesPage() {
   return (
-    <div className="container mx-auto p-4 sm:p-6 lg:p-8">
-      <header className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight">My Files</h1>
-        <p className="text-lg text-muted-foreground">Browse and manage your uploaded documents.</p>
-      </header>
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {mockFiles.map((file) => (
-          <Card key={file.id} className="hover:shadow-lg transition-shadow group">
-            <Link href={`/files/${file.id}`} className="block h-full">
-              <CardHeader>
-                <div className="flex justify-between items-start">
-                  <FileIcon type={file.type} />
-                  <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
-                </div>
-              </CardHeader>
-              <CardContent>
-                <CardTitle className="text-lg truncate">{file.name}</CardTitle>
-                <CardDescription className="mt-2 text-sm">{file.size} - {file.date}</CardDescription>
-              </CardContent>
-            </Link>
-          </Card>
-        ))}
+    <AuthGuard>
+      <div className="container mx-auto p-4 sm:p-6 lg:p-8">
+        <header className="mb-8">
+          <h1 className="text-3xl font-bold tracking-tight">My Files</h1>
+          <p className="text-lg text-muted-foreground">Browse and manage your uploaded documents.</p>
+        </header>
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {mockFiles.map((file) => (
+            <Card key={file.id} className="hover:shadow-lg transition-shadow group">
+              <Link href={`/files/${file.id}`} className="block h-full">
+                <CardHeader>
+                  <div className="flex justify-between items-start">
+                    <FileIcon type={file.type} />
+                    <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <CardTitle className="text-lg truncate">{file.name}</CardTitle>
+                  <CardDescription className="mt-2 text-sm">{file.size} - {file.date}</CardDescription>
+                </CardContent>
+              </Link>
+            </Card>
+          ))}
+        </div>
       </div>
-    </div>
+    </AuthGuard>
   );
 }

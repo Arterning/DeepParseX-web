@@ -2,8 +2,10 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Bot, FileText, UploadCloud } from 'lucide-react';
+import { Bot, FileText, UploadCloud, LogOut, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/lib/auth';
+import { Button } from '@/components/ui/button';
 
 const navLinks = [
   { href: '/', label: 'Upload', icon: UploadCloud },
@@ -13,6 +15,7 @@ const navLinks = [
 
 export function Navbar() {
   const pathname = usePathname();
+  const { isAuthenticated, isLoading, logout } = useAuth();
 
   return (
     <nav className="border-b bg-background/95 backdrop-blur-sm sticky top-0 z-50">
@@ -34,20 +37,33 @@ export function Navbar() {
           </svg>
           <span>DeepParseX</span>
         </Link>
-        <div className="hidden md:flex items-center space-x-6">
-          {navLinks.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className={cn(
-                'flex items-center gap-2 text-sm font-medium transition-colors hover:text-primary',
-                pathname === link.href ? 'text-primary' : 'text-muted-foreground'
-              )}
-            >
-              <link.icon className="h-4 w-4" />
-              {link.label}
-            </Link>
-          ))}
+        
+        <div className="flex items-center space-x-6">
+          {isLoading ? (
+            <Loader2 className="h-5 w-5 animate-spin" />
+          ) : isAuthenticated ? (
+            <>
+              <div className="hidden md:flex items-center space-x-6">
+                {navLinks.map((link) => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className={cn(
+                      'flex items-center gap-2 text-sm font-medium transition-colors hover:text-primary',
+                      pathname === link.href ? 'text-primary' : 'text-muted-foreground'
+                    )}
+                  >
+                    <link.icon className="h-4 w-4" />
+                    {link.label}
+                  </Link>
+                ))}
+              </div>
+              <Button variant="ghost" size="sm" onClick={logout}>
+                <LogOut className="mr-2 h-4 w-4" />
+                Logout
+              </Button>
+            </>
+          ) : null}
         </div>
       </div>
     </nav>

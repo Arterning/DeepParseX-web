@@ -11,6 +11,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Loader2, Send, User, Bot, FileWarning } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
+import AuthGuard from '@/components/auth-guard';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -94,103 +95,107 @@ export default function ChatPage() {
 
   if (!documentContext) {
     return (
-      <div className="container mx-auto p-4 sm:p-6 lg:p-8 flex items-center justify-center h-[calc(100vh-4rem)]">
-        <Card className="max-w-md text-center">
-            <CardHeader>
-                <div className="mx-auto bg-yellow-100 dark:bg-yellow-900/50 p-3 rounded-full w-fit">
-                    <FileWarning className="h-10 w-10 text-yellow-500 dark:text-yellow-400" />
-                </div>
-                <CardTitle className="mt-4">No Document Selected</CardTitle>
-                <CardDescription>
-                    Please upload a document on the homepage first to start a chat session.
-                </CardDescription>
-            </CardHeader>
-            <CardContent>
-                <Button asChild>
-                    <Link href="/">Go to Upload Page</Link>
-                </Button>
-            </CardContent>
-        </Card>
-      </div>
+      <AuthGuard>
+        <div className="container mx-auto p-4 sm:p-6 lg:p-8 flex items-center justify-center h-[calc(100vh-4rem)]">
+            <Card className="max-w-md text-center">
+                <CardHeader>
+                    <div className="mx-auto bg-yellow-100 dark:bg-yellow-900/50 p-3 rounded-full w-fit">
+                        <FileWarning className="h-10 w-10 text-yellow-500 dark:text-yellow-400" />
+                    </div>
+                    <CardTitle className="mt-4">No Document Selected</CardTitle>
+                    <CardDescription>
+                        Please upload a document on the homepage first to start a chat session.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <Button asChild>
+                        <Link href="/">Go to Upload Page</Link>
+                    </Button>
+                </CardContent>
+            </Card>
+        </div>
+      </AuthGuard>
     );
   }
 
   return (
-    <div className="container mx-auto h-[calc(100vh-4rem)] flex flex-col p-4">
-        <header className="mb-4 text-center">
-            <h1 className="text-2xl font-bold">AI Chat</h1>
-            <p className="text-muted-foreground">
-                Asking questions about: <span className="font-semibold text-primary">{documentContext.fileName}</span>
-            </p>
-        </header>
-      <Card className="flex-1 flex flex-col">
-        <CardContent className="flex-1 flex flex-col p-0">
-          <ScrollArea className="flex-1 p-6" ref={scrollAreaRef}>
-            <div className="space-y-6">
-              {messages.map((message, index) => (
-                <div
-                  key={index}
-                  className={cn(
-                    'flex items-start gap-4',
-                    message.role === 'user' ? 'justify-end' : ''
-                  )}
-                >
-                  {message.role === 'assistant' && (
-                    <Avatar className="h-8 w-8">
-                      <AvatarFallback><Bot /></AvatarFallback>
-                    </Avatar>
-                  )}
-                  <div
+    <AuthGuard>
+        <div className="container mx-auto h-[calc(100vh-4rem)] flex flex-col p-4">
+            <header className="mb-4 text-center">
+                <h1 className="text-2xl font-bold">AI Chat</h1>
+                <p className="text-muted-foreground">
+                    Asking questions about: <span className="font-semibold text-primary">{documentContext.fileName}</span>
+                </p>
+            </header>
+        <Card className="flex-1 flex flex-col">
+            <CardContent className="flex-1 flex flex-col p-0">
+            <ScrollArea className="flex-1 p-6" ref={scrollAreaRef}>
+                <div className="space-y-6">
+                {messages.map((message, index) => (
+                    <div
+                    key={index}
                     className={cn(
-                      'max-w-[75%] rounded-lg p-3 text-sm',
-                      message.role === 'user'
-                        ? 'bg-primary text-primary-foreground'
-                        : 'bg-muted'
+                        'flex items-start gap-4',
+                        message.role === 'user' ? 'justify-end' : ''
                     )}
-                  >
-                    {message.content.split('**').map((part, i) => 
-                        i % 2 === 1 ? <strong key={i}>{part}</strong> : part
-                    )}
-                  </div>
-                  {message.role === 'user' && (
-                    <Avatar className="h-8 w-8">
-                      <AvatarFallback><User /></AvatarFallback>
-                    </Avatar>
-                  )}
-                </div>
-              ))}
-              {isLoading && (
-                 <div className="flex items-start gap-4">
-                    <Avatar className="h-8 w-8">
+                    >
+                    {message.role === 'assistant' && (
+                        <Avatar className="h-8 w-8">
                         <AvatarFallback><Bot /></AvatarFallback>
-                    </Avatar>
-                    <div className="bg-muted rounded-lg p-3 flex items-center space-x-2">
-                        <Loader2 className="h-4 w-4 animate-spin"/>
-                        <span>Thinking...</span>
+                        </Avatar>
+                    )}
+                    <div
+                        className={cn(
+                        'max-w-[75%] rounded-lg p-3 text-sm',
+                        message.role === 'user'
+                            ? 'bg-primary text-primary-foreground'
+                            : 'bg-muted'
+                        )}
+                    >
+                        {message.content.split('**').map((part, i) => 
+                            i % 2 === 1 ? <strong key={i}>{part}</strong> : part
+                        )}
                     </div>
-                 </div>
-              )}
-            </div>
-          </ScrollArea>
-          <div className="border-t p-4">
-            <form onSubmit={handleSubmit} className="flex gap-2">
-              <Input
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder="Ask a question about the document..."
-                disabled={isLoading}
-              />
-              <Button type="submit" disabled={isLoading || !input.trim()}>
-                {isLoading ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Send className="h-4 w-4" />
+                    {message.role === 'user' && (
+                        <Avatar className="h-8 w-8">
+                        <AvatarFallback><User /></AvatarFallback>
+                        </Avatar>
+                    )}
+                    </div>
+                ))}
+                {isLoading && (
+                    <div className="flex items-start gap-4">
+                        <Avatar className="h-8 w-8">
+                            <AvatarFallback><Bot /></AvatarFallback>
+                        </Avatar>
+                        <div className="bg-muted rounded-lg p-3 flex items-center space-x-2">
+                            <Loader2 className="h-4 w-4 animate-spin"/>
+                            <span>Thinking...</span>
+                        </div>
+                    </div>
                 )}
-              </Button>
-            </form>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+                </div>
+            </ScrollArea>
+            <div className="border-t p-4">
+                <form onSubmit={handleSubmit} className="flex gap-2">
+                <Input
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    placeholder="Ask a question about the document..."
+                    disabled={isLoading}
+                />
+                <Button type="submit" disabled={isLoading || !input.trim()}>
+                    {isLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                    <Send className="h-4 w-4" />
+                    )}
+                </Button>
+                </form>
+            </div>
+            </CardContent>
+        </Card>
+        </div>
+    </AuthGuard>
   );
 }
