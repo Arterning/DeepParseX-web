@@ -16,6 +16,7 @@ import { Loader2 } from 'lucide-react';
 const formSchema = z.object({
   username: z.string().min(1, { message: 'Username is required.' }),
   password: z.string().min(1, { message: 'Password is required.' }),
+  captcha: z.string().optional(),
 });
 
 export default function LoginPage() {
@@ -28,6 +29,7 @@ export default function LoginPage() {
     defaultValues: {
       username: '',
       password: '',
+      captcha: '',
     },
   });
 
@@ -38,6 +40,7 @@ export default function LoginPage() {
       toast({ title: 'Login Successful', description: 'Redirecting...' });
       router.push('/');
     } catch (error) {
+      console.error(error);
       toast({
         variant: 'destructive',
         title: 'Login Failed',
