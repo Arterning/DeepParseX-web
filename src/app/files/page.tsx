@@ -13,6 +13,14 @@ const FileIcon = ({ type }: { type: string }) => {
  return <FileText className="h-8 w-8 text-muted-foreground" />;
 };
 
+// Mock data for uploaded filesAdd commentMore actions
+const mockFiles = [
+  { id: 1, name: 'Project Proposal.pdf', type: 'application/pdf', size: 234234, created_time: '2024-07-29' },
+  { id: 2, name: 'Market-Analysis.docx', type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', size: 85034, created_time: '2024-07-28' },
+  { id: 3, name: 'Website_Mockup.png', type: 'image/png', size: 234445, created_time: '2024-07-28' },
+  { id: 4, name: 'Q3-Financials.xlsx', type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', size: 403444, created_time: '2024-07-27' },
+];
+
 export default function FilesPage() {
  const [files, setFiles] = useState<SysDocRes[]>([]);
  const [loading, setLoading] = useState(true);
@@ -31,7 +39,26 @@ export default function FilesPage() {
       }
     };
 
-    fetchFiles();
+    const fetchMockFiles = async (): Promise<SysDocRes[]> => {
+      // Simulating a delay for mock data
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          resolve(mockFiles);
+        }, 1000);
+      });
+    };
+
+    const BASE_API = process.env.NEXT_PUBLIC_BASE_API;
+
+    if (BASE_API) {
+      fetchFiles();
+    } else {
+      fetchMockFiles().then((mockFiles) => {
+        setFiles(mockFiles);
+        setLoading(false);
+      });
+    }
+
  }, []);
 
   return (
