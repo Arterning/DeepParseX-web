@@ -8,8 +8,11 @@ import { useEffect, useState, useCallback } from 'react';
 // --- Constants ---
 const TOKEN_KEY = 'deep_parse_x_token';
 
+const BASE_API = process.env.NEXT_PUBLIC_BASE_API;
 
-axios.defaults.baseURL = 'http://192.168.200.229:8001';
+// console.log("ENV", BASE_API);
+
+axios.defaults.baseURL = BASE_API;
 
 
 // 请求拦截器
@@ -124,7 +127,12 @@ export function mockLogin(data: LoginData): Promise<LoginRes> {
 
 // --- Auth Service Functions ---
 export const login = async (data: LoginData): Promise<LoginRes> => {
-  const response = await dologin(data);
+  let response;
+  if (BASE_API) {
+    response = await dologin(data);
+  } else {
+    response = await mockLogin(data);
+  }
   setToken(response.access_token);
   return response;
 };
